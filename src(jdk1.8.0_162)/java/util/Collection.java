@@ -38,6 +38,7 @@ import java.util.stream.StreamSupport;
  * specific subinterfaces like <tt>Set</tt> and <tt>List</tt>.  This interface
  * is typically used to pass collections around and manipulate them where
  * maximum generality is desired.
+ * 集合层次的根目录。一个集合表示一组对象，这些对象也是
  *
  * <p><i>Bags</i> or <i>multisets</i> (unordered collections that may contain
  * duplicate elements) should implement this interface directly.
@@ -311,7 +312,7 @@ public interface Collection<E> extends Iterable<E> {
     boolean remove(Object o);
 
 
-    // Bulk Operations
+    // Bulk Operations 批量操作
 
     /**
      * Returns <tt>true</tt> if this collection contains all of the elements
