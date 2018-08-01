@@ -31,6 +31,9 @@ package java.util;
  * purpose of this interface is to allow generic algorithms to alter their
  * behavior to provide good performance when applied to either random or
  * sequential access lists.
+ * 被List实现用来表明它们支持快速随机访问（通常是常数时间）的标记接口。这个
+ * 接口的主要目的是允许通用算法在应用到随机访问或者顺序访问list时，修改它们
+ * 的行为以提供更好的性能。
  *
  * <p>The best algorithms for manipulating random access lists (such as
  * <tt>ArrayList</tt>) can produce quadratic behavior when applied to
@@ -40,6 +43,8 @@ package java.util;
  * provide poor performance if it were applied to a sequential access list,
  * and to alter their behavior if necessary to guarantee acceptable
  * performance.
+ * 操作随机访问list（例如ArraryList)的最好算法当应用到顺序访问list（例如LinkedList）
+ * 时会产生平方级行为。
  *
  * <p>It is recognized that the distinction between random and sequential
  * access is often fuzzy.  For example, some <tt>List</tt> implementations

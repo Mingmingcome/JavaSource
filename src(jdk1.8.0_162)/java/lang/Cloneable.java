@@ -30,10 +30,12 @@ package java.lang;
  * indicate to the {@link java.lang.Object#clone()} method that it
  * is legal for that method to make a
  * field-for-field copy of instances of that class.
+ * 
  * <p>
  * Invoking Object's clone method on an instance that does not implement the
  * <code>Cloneable</code> interface results in the exception
  * <code>CloneNotSupportedException</code> being thrown.
+ * 在一个没有实现Cloneable接口的实例上调用Object的clone方法会抛出CloneNotSupportedException.
  * <p>
  * By convention, classes that implement this interface should override
  * <tt>Object.clone</tt> (which is protected) with a public method.
