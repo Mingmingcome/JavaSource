@@ -283,9 +283,11 @@ public class Semaphore implements java.io.Serializable {
     /**
      * Acquires a permit from this semaphore, blocking until one is
      * available, or the thread is {@linkplain Thread#interrupt interrupted}.
+     * 从信号量中请求一个许可，请求会被阻塞直到有一个许可可用，或者线程被中断
      *
      * <p>Acquires a permit, if one is available and returns immediately,
      * reducing the number of available permits by one.
+     * <p>请求一个许可，如果有一个许可可用，会立即返回，可用许可的数量减一。
      *
      * <p>If no permit is available then the current thread becomes
      * disabled for thread scheduling purposes and lies dormant until
@@ -296,6 +298,10 @@ public class Semaphore implements java.io.Serializable {
      * <li>Some other thread {@linkplain Thread#interrupt interrupts}
      * the current thread.
      * </ul>
+     * <p>如果没有许可可用，当前线程对于线程调度的目的变得无用，且会处于休眠
+     * 直到下面两事件之一发生：
+     * <li>其他线程调用了这个信号量的release方法，而当前线程是下一个被赋予许可的
+     * <li>或者其他线程interrupts中断了当前的线程。
      *
      * <p>If the current thread:
      * <ul>

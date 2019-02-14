@@ -142,6 +142,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /*
      * Implementation notes.
+     * 实现注意事项。
      *
      * This map usually acts as a binned (bucketed) hash table, but
      * when bins get too large, they are transformed into bins of
@@ -153,6 +154,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * when overpopulated. However, since the vast majority of bins in
      * normal use are not overpopulated, checking for existence of
      * tree bins may be delayed in the course of table methods.
+     * 这个map通常充当为桶状哈希表，但是当桶变得太大的时候，他们会被
+     * 转换成树节点的桶，每一个结构类似于java.util.TreeMap。大多数方法
+     * 尽量去使用普通的桶，但是在适当的时候（简单检查一个节点的实例）
+     * 可以传递到TreeNode方法。
      *
      * Tree bins (i.e., bins whose elements are all TreeNodes) are
      * ordered primarily by hashCode, but in the case of ties, if two
@@ -232,18 +237,22 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * The default initial capacity - MUST be a power of two.
+     * 默认初始化容量-必须是2的幂。
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
     /**
      * The maximum capacity, used if a higher value is implicitly specified
      * by either of the constructors with arguments.
-     * MUST be a power of two <= 1<<30.
+     * MUST be a power of two <= 1 << 30.
+     * 最大容量，如果任一构造器通过参数指定一个更大的值。
+     * 必须是2的幂且<= 1 << 30
      */
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
      * The load factor used when none specified in constructor.
+     * 默认装载因子，当没有在构造器中指定的时候使用
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
@@ -403,6 +412,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * The number of key-value mappings contained in this map.
+     * 包含在这个map的键值对的数目。
      */
     transient int size;
 
@@ -417,18 +427,23 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * The next size value at which to resize (capacity * load factor).
-     *
+     * 调整大小的下一个size值（即容量 * 装载因子）。
      * @serial
      */
     // (The javadoc description is true upon serialization.
     // Additionally, if the table array has not been allocated, this
     // field holds the initial array capacity, or zero signifying
     // DEFAULT_INITIAL_CAPACITY.)
+    /** 
+     * (在序列化上javadoc描述是正确的。
+     * 另外，如果表数组还没有被分配，这个域拥有着初始化数组容量或者0表示
+     * 默认初始化容量)
+     */
     int threshold;
 
     /**
      * The load factor for the hash table.
-     *
+     * 哈希表的装载因子。
      * @serial
      */
     final float loadFactor;
@@ -538,17 +553,23 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns the value to which the specified key is mapped,
      * or {@code null} if this map contains no mapping for the key.
+     * 返回指定键映射的值，或者null（如果map没有这个键的映射）
      *
      * <p>More formally, if this map contains a mapping from a key
      * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
      * key.equals(k))}, then this method returns {@code v}; otherwise
      * it returns {@code null}.  (There can be at most one such mapping.)
+     * such that：如此……以致
+     * 更正式地说，如果map包含从键k到值v的映射使(key==null ? k==null :
+     * key.equals(k))，这方法就返回值v；否则返回null。最多只有一个这样的映射。
      *
      * <p>A return value of {@code null} does not <i>necessarily</i>
      * indicate that the map contains no mapping for the key; it's also
      * possible that the map explicitly maps the key to {@code null}.
      * The {@link #containsKey containsKey} operation may be used to
      * distinguish these two cases.
+     * 返回值为null不是一定表明map不包含这个键的映射；它可能是map显式地将这个键
+     * 映射到null。containsKey可以用来分辨这两种情况。
      *
      * @see #put(Object, Object)
      */
@@ -650,6 +671,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     p = e;
                 }
             }
+            // 如果这个键已经存在，判断onlyIfAbsent标志（缺少则添加）或者旧值是否为空，
+            // onlyIfAbsent为false（默认值）或者旧值为空时，新值替换旧值。
+            // 因为put操作默认是false，即默认是put操作新值覆盖旧值
             if (e != null) { // existing mapping for key
                 V oldValue = e.value;
                 if (!onlyIfAbsent || oldValue == null)
@@ -679,26 +703,39 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
         int oldThr = threshold;
         int newCap, newThr = 0;
+        // 1、原容量大于0
         if (oldCap > 0) {
+            // 1)当原容量大于等于最大容量（即2^30）时，将阈值改成Integer.MAX_VALUE，
+            // 返回原表
             if (oldCap >= MAXIMUM_CAPACITY) {
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
+            // 2)当原容量的2倍（即新容量）小于最大容量且原容量大于或等于默认初始化容量时，
+            // 新阈值等于原阈值的2倍
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold
         }
+        // 2、原阈值大于0（阈值设置的初始值）
+        // 阈值不变，新容量等于阈值
         else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
+        // 3、初始化阈值使用0作为默认值
+        // 新容量为默认初始化容量64，新阈值为默认装载因子 * 默认初始化容量48
         else {               // zero initial threshold signifies using defaults
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
+        // 当新阈值等于0：（这个好像只有2、原阈值大于零的情况下才会发生）
+        // 当新容量小于最大容量2^30且【新容量 * 装载因子】（即ft）小于最大容量时，新阈值为
+        // ft，否则为Integer.MAX_VALUE
         if (newThr == 0) {
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                       (int)ft : Integer.MAX_VALUE);
         }
+        // 扩容之后，阈值和节点数组赋新值
         threshold = newThr;
         @SuppressWarnings({"rawtypes","unchecked"})
             Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
