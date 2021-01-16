@@ -678,6 +678,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Otherwise, because we are using power-of-two expansion, the
      * elements from each bin must either stay at same index, or move
      * with a power of two offset in the new table.
+     * 初始化table大小或者将table大小翻倍。
+     *
      *
      * @return the table
      */
