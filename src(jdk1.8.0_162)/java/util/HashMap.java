@@ -2,25 +2,6 @@
  * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  */
 
 package java.util;
@@ -246,7 +227,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1 << 30.
      * 最大容量，如果任一构造器通过参数指定一个更大的值。
-     * 必须是2的幂且<= 1 << 30
+     * 必须是2的幂且<= 1 << 30(2^30)
      */
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
@@ -382,7 +363,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a power of two size for the given target capacity.
+
      */
     static final int tableSizeFor(int cap) {
         int n = cap - 1;
@@ -647,8 +628,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                    boolean evict) {
         Node<K,V>[] tab; Node<K,V> p; int n, i;
         if ((tab = table) == null || (n = tab.length) == 0)
+            // 1、
             n = (tab = resize()).length;
         if ((p = tab[i = (n - 1) & hash]) == null)
+            //
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;
@@ -711,13 +694,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
-            // 2)当原容量的2倍（即新容量）小于最大容量且原容量大于或等于默认初始化容量时，
+            // 2)当原容量的2倍（即新容量）小于(<)最大容量 且(&&) 原容量大于或等于(>=)默认初始化容量时，
             // 新阈值等于原阈值的2倍
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold
         }
-        // 2、原阈值大于0（阈值设置的初始值）
+        // 2、原阈值大于0（阈值设置的初始值）[oldCap=0]
         // 阈值不变，新容量等于阈值
         else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
