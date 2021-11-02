@@ -235,6 +235,7 @@ public class ArrayList<E> extends AbstractList<E>
         modCount++;
 
         // overflow-conscious code
+        // 如果需要的容量大于现在的数组的长度，则增加数据的长度
         if (minCapacity - elementData.length > 0)
             grow(minCapacity);
     }

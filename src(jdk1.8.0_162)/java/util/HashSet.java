@@ -211,6 +211,7 @@ public class HashSet<E>
      * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt>.
      * If this set already contains the element, the call leaves the set
      * unchanged and returns <tt>false</tt>.
+     * 添加具体set元素当且仅当这个元素不存在。
      *
      * @param e element to be added to this set
      * @return <tt>true</tt> if this set did not already contain the specified

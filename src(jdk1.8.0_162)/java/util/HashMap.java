@@ -332,6 +332,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns x's Class if it is of the form "class C implements
      * Comparable<C>", else null.
+     * 是否实现 Comparable 接口
      */
     static Class<?> comparableClassFor(Object x) {
         if (x instanceof Comparable) {
@@ -355,6 +356,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns k.compareTo(x) if x matches kc (k's screened comparable
      * class), else 0.
+     * screened:筛过的
+     *
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // for cast to Comparable
     static int compareComparables(Class<?> kc, Object k, Object x) {
@@ -627,39 +630,47 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
         Node<K,V>[] tab; Node<K,V> p; int n, i;
+        // 如果table未初始化，则初始化table
         if ((tab = table) == null || (n = tab.length) == 0)
-            // 1、
             n = (tab = resize()).length;
         if ((p = tab[i = (n - 1) & hash]) == null)
-            //
+            // 如果hash后在数组上为空，那么直接创建一个新的Node
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
+                // 1、hash后在数组table对应位置有数据，且key值是一样的，将旧值保存起来
                 e = p;
             else if (p instanceof TreeNode)
+                // 2、是数节点的话，进入树节点处理方法
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
             else {
+                // 3、链表
                 for (int binCount = 0; ; ++binCount) {
                     if ((e = p.next) == null) {
+                        // 找到最后，并未找到key相同的节点，新建节点
                         p.next = newNode(hash, key, value, null);
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                            // 因为第一个if的时候已经处理了第一个节点，所以这里threshold - 1
                             treeifyBin(tab, hash);
                         break;
                     }
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
+                        // 找到key相同的节点
                         break;
                     p = e;
                 }
             }
-            // 如果这个键已经存在，判断onlyIfAbsent标志（缺少则添加）或者旧值是否为空，
-            // onlyIfAbsent为false（默认值）或者旧值为空时，新值替换旧值。
-            // 因为put操作默认是false，即默认是put操作新值覆盖旧值
+            // 如果这个键key已经存在
             if (e != null) { // existing mapping for key
                 V oldValue = e.value;
+                // 是否覆盖
                 if (!onlyIfAbsent || oldValue == null)
+                    // onlyIfAbsent标志（缺少则添加）或者旧值是否为空，
+                    // onlyIfAbsent为false（默认值）或者旧值为空时，新值替换旧值。
+                    // 因为put操作默认是false，即默认是put操作新值覆盖旧值
                     e.value = value;
                 afterNodeAccess(e);
                 return oldValue;
@@ -679,7 +690,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * elements from each bin must either stay at same index, or move
      * with a power of two offset in the new table.
      * 初始化table大小或者将table大小翻倍。
-     *
+     * 如果为空，则根据字段阈值中保持的初始容量目标进行分配。
+     * 否则，因为我们使用的是2的幂，所以每个bin中的元素必须保持相同的索引，或者在新表中以2的幂偏移。
      *
      * @return the table
      */
@@ -688,39 +700,39 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
         int oldThr = threshold;
         int newCap, newThr = 0;
-        // 1、原容量大于0
+        // 1、table已经初始化，正常扩容翻倍
         if (oldCap > 0) {
-            // 1)当原容量大于等于最大容量（即2^30）时，将阈值改成Integer.MAX_VALUE，
+            // 1)当原capacity大于等于最大capacity（即2^30）时，将阈值改成Integer.MAX_VALUE，
             // 返回原表
             if (oldCap >= MAXIMUM_CAPACITY) {
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
-            // 2)当原容量的2倍（即新容量）小于(<)最大容量 且(&&) 原容量大于或等于(>=)默认初始化容量时，
-            // 新阈值等于原阈值的2倍
+            // 2)当新capacity(=原capacity的2倍)小于(<)最大capacity 且(&&) 原capacity 大于或等于(>=) 默认初始化容量时，
+            // 原容量和阈值都翻倍：newCap = oldCap << 1 和 newThr = oldThr << 1
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold
         }
-        // 2、原阈值大于0（阈值设置的初始值）[oldCap=0]
-        // 阈值不变，新容量等于阈值
+        // 2、使用了明确初始化capacity的HashMap(int, float)或者HashMap(int)构造函数创建hashmap后第一次扩容，使用threshold初始化容量
+        // 这时原阈值大于0
         else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
-        // 3、初始化阈值使用0作为默认值
-        // 新容量为默认初始化容量64，新阈值为默认装载因子 * 默认初始化容量48
+        // 3、使用无参构造函数HashMap()构造函数创建HashMap后第一次扩容
         else {               // zero initial threshold signifies using defaults
+            // 新容量为默认初始化容量64，新阈值为默认装载因子 * 默认初始化容量48
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
-        // 当新阈值等于0：（这个好像只有2、原阈值大于零的情况下才会发生）
-        // 当新容量小于最大容量2^30且【新容量 * 装载因子】（即ft）小于最大容量时，新阈值为
-        // ft，否则为Integer.MAX_VALUE
+        // 上述分支【2】情况下，新阈值threshold会等于0
         if (newThr == 0) {
+            // 如果新capacity已是最大值，那么新阈值threshold也是最大值，
+            // 否则按公式计算新阈值threshold=capacity*loadFactor(新容量 * 装载因子)
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                       (int)ft : Integer.MAX_VALUE);
         }
-        // 扩容之后，阈值和节点数组赋新值
+        // 扩容之后，元素重新hash后，放置到合适的位置上
         threshold = newThr;
         @SuppressWarnings({"rawtypes","unchecked"})
             Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
@@ -835,16 +847,23 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
+        // map非空，且对应key值存在
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
+                // 1.要删除的键的hash只有一个对应的值
+                // (k = p.key) == key || (key != null && key.equals(k)
+                // 键比较的两种方式：一：双等（==）二：equals方法
                 node = p;
             else if ((e = p.next) != null) {
+                // 2.要删除的键的hash不止一个值
                 if (p instanceof TreeNode)
+                    // 2.1.如果是树节点
                     node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
                 else {
+                    // 2.2.如果是链表
                     do {
                         if (e.hash == hash &&
                             ((k = e.key) == key ||
@@ -2003,19 +2022,26 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 else if (ph < h)
                     dir = 1;
                 else if ((pk = p.key) == k || (k != null && k.equals(pk)))
+                    // 找到相同的key，直接返回
                     return p;
                 else if ((kc == null &&
                           (kc = comparableClassFor(k)) == null) ||
                          (dir = compareComparables(kc, k, pk)) == 0) {
+                    // 没太懂分支的含义（2021-3-13）
+                    // 1.插入节点的键不可比较
+                    // 2.插入节点的键可比较：遍历的当前节点的键和插入的节点的键相等
                     if (!searched) {
+                        // 只会找一次
                         TreeNode<K,V> q, ch;
                         searched = true;
                         if (((ch = p.left) != null &&
                              (q = ch.find(h, k, kc)) != null) ||
                             ((ch = p.right) != null &&
                              (q = ch.find(h, k, kc)) != null))
+                            // 遍历的当前节点有左子树或者有右子树，且找到的树节点不为空
                             return q;
                     }
+                    // tie-breaking：平局决胜
                     dir = tieBreakOrder(k, pk);
                 }
 
